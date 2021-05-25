@@ -4,13 +4,40 @@ import TodoInput from "./TodoInput";
 import TodoItem from "./TodoItem";
 
 const App = () => {
+
+
   const [isVisibleCompleted, setVisibleCompleted] = useState(false);
 
   const [todoItems, setTodoItems] = useState([]);
 
   async function addTodoItem(_text) {
-    await AsyncStorage.setItem('todos', JSON.stringify([...todoItems, {text: _text, completed: false}]))
-    setTodoItems([...todoItems, {text: _text, completed: false}]);
+    let json = []
+    try {
+      let response = await fetch(
+        'http://192.168.0.27:4000/post', {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            text: _text,
+            completed: false
+          })
+        }
+      )
+      json = await response.json()
+      console.log(json)
+    } catch (error) {
+      console.error(error)
+    }
+    console.log(json)
+
+    setTodoItems([ ...todoItems, json ])
+    console.log(todoItems)
+
+    // await AsyncStorage.setItem('todos', JSON.stringify([...todoItems, {text: _text, completed: false}]))
+    // setTodoItems([...todoItems, {text: _text, completed: false}]);
   }
 
   async function deleteTodoItem(_index){
@@ -51,11 +78,22 @@ const App = () => {
   }
 
   const init = async () => {
-    const todos = await AsyncStorage.getItem('todos')
-    if (!todos) {
-      return
+    let json = []
+    try {
+      let response = await fetch(
+        'http://192.168.0.27:4000/get'
+      )
+      json = await response.json()
+    } catch (error) {
+      console.error(error)
     }
-    setTodoItems(JSON.parse(todos))
+    setTodoItems(json)
+    // console.log(todoItems)
+    // const todos = await AsyncStorage.getItem('todos')
+    // if (!todos) {
+    //   return
+    // }
+    // setTodoItems(JSON.parse(todos))
   }
 
   useEffect(() => {
@@ -82,11 +120,11 @@ const App = () => {
               //     )
               //   }
               // </>
-                                  <TodoItem
-                                  item={item}
-                                  deleteFunction={() => deleteTodoItem(index)}
-                                  completeFunction={() => completeTodoItem(index)}
-                                />
+              <TodoItem
+                item={item}
+                deleteFunction={() => deleteTodoItem(index)}
+                completeFunction={() => completeTodoItem(index)}
+              />
             )
           }}
         />
