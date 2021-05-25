@@ -2,15 +2,27 @@ import React, {useState, useEffect} from 'react';
 import { Text, SafeAreaView, StatusBar, FlatList, View, TouchableHighlight, TouchableOpacity, StyleSheet, Button, AsyncStorage } from 'react-native';
 import TodoInput from "./TodoInput";
 import TodoItem from "./TodoItem";
+import * as firebase from 'firebase'
+import 'firebase/firestore';
+import Firebase from 'firebase.js'
 
 const App = () => {
   const [isVisibleCompleted, setVisibleCompleted] = useState(false);
 
+  const [isLoading, setLoading] = useState(true);
   const [todoItems, setTodoItems] = useState([]);
 
-  async function addTodoItem(_text) {
-    await AsyncStorage.setItem('todos', JSON.stringify([...todoItems, {text: _text, completed: false}]))
-    setTodoItems([...todoItems, {text: _text, completed: false}]);
+  const db = Firebase.firestore();
+
+  function addTodoItem(_text, completed) {
+    firebase
+      .database()
+      .set({
+        text: _text,
+        completed: false,
+      })
+    // await AsyncStorage.setItem('todos', JSON.stringify([...todoItems, {text: _text, completed: false}]))
+    // setTodoItems([...todoItems, {text: _text, completed: false}]);
   }
 
   async function deleteTodoItem(_index){
@@ -51,10 +63,13 @@ const App = () => {
   }
 
   const init = async () => {
-    const todos = await AsyncStorage.getItem('todos')
-    if (!todos) {
-      return
-    }
+    try {
+      let response = await fetch('gs://todoapp-38d4b.appspot.com/todoItems')
+      let json = await response.json();
+      return json.todoItems
+    } catch (error) {
+        console.error(error);
+      }
     setTodoItems(JSON.parse(todos))
   }
 
