@@ -27,25 +27,56 @@ const App = () => {
         }
       )
       json = await response.json()
-      console.log(json)
     } catch (error) {
       console.error(error)
     }
-    console.log(json)
 
     setTodoItems([ ...todoItems, json ])
-    console.log(todoItems)
 
     // await AsyncStorage.setItem('todos', JSON.stringify([...todoItems, {text: _text, completed: false}]))
     // setTodoItems([...todoItems, {text: _text, completed: false}]);
   }
 
   async function deleteTodoItem(_index){
-    let tempArr = [...todoItems];
-    tempArr.splice(_index, 1);
-    await AsyncStorage.setItem('todos', JSON.stringify(tempArr))
-    setTodoItems(tempArr)
+    let json = []
+    try {
+      let response = await fetch(
+        'http://192.168.0.27:4000/get'
+      )
+      json = await response.json()
+    } catch (error) {
+      console.error(error)
+    }
+    json.splice(_index, 1)
+    console.log(json)
+    setTodoItems(json)
+    console.log(todoItems)
+
+    // try {
+    //   let response = await fetch(
+    //     'http://192.168.0.27:4000/post', {
+    //       method: 'POST',
+    //       headers: {
+    //         Accept: 'application/json',
+    //         'Content-Type': 'application/json'
+    //       },
+    //       body: JSON.stringify({json})
+    //     }
+    //   )
+    //   json = await response.json()
+    // } catch (error) {
+    //   console.error(error)
+    // }
+    // console.log(json)
+    // setTodoItems(json)
+      
   }
+
+    // let tempArr = [...todoItems];
+    // tempArr.splice(_index, 1);
+    // await AsyncStorage.setItem('todos', JSON.stringify(tempArr))
+    // setTodoItems(tempArr)
+  
 
   async function completeTodoItem(_index){
     let tempArr = [...todoItems];
@@ -87,8 +118,10 @@ const App = () => {
     } catch (error) {
       console.error(error)
     }
+    // console.log(json)
     setTodoItems(json)
     // console.log(todoItems)
+
     // const todos = await AsyncStorage.getItem('todos')
     // if (!todos) {
     //   return
@@ -99,6 +132,8 @@ const App = () => {
   useEffect(() => {
     init()
   }, [])
+
+  console.log("aaaa", todoItems)
 
   return (
     <>
