@@ -30,59 +30,33 @@ const App = () => {
     } catch (error) {
       console.error(error)
     }
-
+    console.log(json)
     setTodoItems([ ...todoItems, json ])
 
     // await AsyncStorage.setItem('todos', JSON.stringify([...todoItems, {text: _text, completed: false}]))
     // setTodoItems([...todoItems, {text: _text, completed: false}]);
   }
 
-  async function deleteTodoItem(_index){
-    let json = []
+  async function deleteTodoItem(id){
     try {
       let response = await fetch(
-        'http://192.168.0.27:4000/get'
+        `http://192.168.0.27:4000/delete?id=${id}` 
       )
-      json = await response.json()
     } catch (error) {
       console.error(error)
     }
-    json.splice(_index, 1)
-    console.log(json)
-    setTodoItems(json)
-    console.log(todoItems)
-
-    // try {
-    //   let response = await fetch(
-    //     'http://192.168.0.27:4000/post', {
-    //       method: 'POST',
-    //       headers: {
-    //         Accept: 'application/json',
-    //         'Content-Type': 'application/json'
-    //       },
-    //       body: JSON.stringify({json})
-    //     }
-    //   )
-    //   json = await response.json()
-    // } catch (error) {
-    //   console.error(error)
-    // }
-    // console.log(json)
-    // setTodoItems(json)
-      
+    init()
   }
-
-    // let tempArr = [...todoItems];
-    // tempArr.splice(_index, 1);
-    // await AsyncStorage.setItem('todos', JSON.stringify(tempArr))
-    // setTodoItems(tempArr)
   
-
-  async function completeTodoItem(_index){
-    let tempArr = [...todoItems];
-    tempArr[_index].completed = true;
-    await AsyncStorage.setItem('todos', JSON.stringify(tempArr))
-    setTodoItems(tempArr)
+  async function completeTodoItem(id){
+    try {
+      let response = await fetch(
+        `http://192.168.0.27:4000/complete?id=${id}` 
+      )
+    } catch (error) {
+      console.error(error)
+    }
+    init()
   }
 
   async function deleteAllCompleted() {
@@ -118,22 +92,13 @@ const App = () => {
     } catch (error) {
       console.error(error)
     }
-    // console.log(json)
     setTodoItems(json)
-    // console.log(todoItems)
-
-    // const todos = await AsyncStorage.getItem('todos')
-    // if (!todos) {
-    //   return
-    // }
-    // setTodoItems(JSON.parse(todos))
   }
 
   useEffect(() => {
     init()
   }, [])
 
-  console.log("aaaa", todoItems)
 
   return (
     <>
@@ -146,7 +111,7 @@ const App = () => {
         <FlatList
           data={todoItems}
           keyExtractor={(item, index) => index.toString()}
-          renderItem={({item, index}) => {
+          renderItem={({item}) => {
             return (
               // <>
               //   {
@@ -157,8 +122,8 @@ const App = () => {
               // </>
               <TodoItem
                 item={item}
-                deleteFunction={() => deleteTodoItem(index)}
-                completeFunction={() => completeTodoItem(index)}
+                deleteFunction={() => deleteTodoItem(item._id)}
+                completeFunction={() => completeTodoItem(item._id)}
               />
             )
           }}
