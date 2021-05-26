@@ -10,7 +10,7 @@ export default function TodoItem(props) {
 
     return (
         <TouchableOpacity
-            // onLongPress={() => console.log('long press')}
+            onLongPress={() => console.log('long press')}
             onPress={() => props.completeFunction()}
             style={{paddingVertical: 8, flexDirection: 'row', justifyContent: 'space-between'}}>
             <Text style={[{fontSize: 18}, style]}>{props.item.text}</Text>           

@@ -5,10 +5,12 @@ import TodoItem from "./TodoItem";
 
 const App = () => {
 
+  const [isVisibleAll, setVisibleAll] = useState(true)
 
   const [isVisibleCompleted, setVisibleCompleted] = useState(false);
 
   const [todoItems, setTodoItems] = useState([]);
+
 
   async function addTodoItem(_text) {
     let json = []
@@ -30,11 +32,7 @@ const App = () => {
     } catch (error) {
       console.error(error)
     }
-    console.log(json)
     setTodoItems([ ...todoItems, json ])
-
-    // await AsyncStorage.setItem('todos', JSON.stringify([...todoItems, {text: _text, completed: false}]))
-    // setTodoItems([...todoItems, {text: _text, completed: false}]);
   }
 
   async function deleteTodoItem(id){
@@ -48,10 +46,19 @@ const App = () => {
     init()
   }
   
-  async function completeTodoItem(id){
+  async function completeTodoItem(id, completed){
     try {
       let response = await fetch(
-        `http://192.168.0.27:4000/complete?id=${id}` 
+        `http://192.168.0.27:4000/complete?id=${id}`, {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            completed: !completed
+          })
+        } 
       )
     } catch (error) {
       console.error(error)
@@ -60,27 +67,29 @@ const App = () => {
   }
 
   async function deleteAllCompleted() {
-    let tempArr = [...todoItems.filter((item) => !item.completed)]
-    await AsyncStorage.setItem('todos', JSON.stringify(tempArr))
-    setTodoItems(tempArr)
+    try {
+      let response = await fetch(
+        'http://192.168.0.27:4000/deleteall' 
+      )
+    } catch (error) {
+      console.error(error)
+    }
+    init()
   }
 
-  async function showAll() {
-    const todos = await AsyncStorage.getItem('todos')
-    setTodoItems(JSON.parse(todos))
+  async function completeAll() {
+    try {
+      let response = await fetch(
+        'http://192.168.0.27:4000/completeall'
+      )
+    } catch (error) {
+      console.error(error)
+    }
+    init()
   }
 
-  async function showActive() {
-    const todos = await AsyncStorage.getItem('todos')
-    let tempArr = [...todos.filter((item) => !item.completed)]
-    setTodoItems(tempArr)
-  }
 
-  async function showCompleted() {
-    const todos = await AsyncStorage.getItem('todos')
-    let tempArr = [...todos.filter((item) => item.completed)]
-    setTodoItems(tempArr)
-  }
+
 
   const init = async () => {
     let json = []
@@ -108,23 +117,31 @@ const App = () => {
           <Text style={styles.title}>todos</Text>
         </View>
         <TodoInput onPress={addTodoItem} />
+        <TouchableOpacity
+        
+            
+            onPress={() => {completeAll()}}
+        >
+            <Text>
+              Complete all
+            </Text>
+        </TouchableOpacity>
         <FlatList
           data={todoItems}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({item}) => {
             return (
-              // <>
-              //   {
-              //     (!isVisibleCompleted && !item.isVisibleCompleted)  || (!isVisibleCompleted && !item.isVisibleCompleted) && (
-
-              //     )
-              //   }
-              // </>
-              <TodoItem
-                item={item}
-                deleteFunction={() => deleteTodoItem(item._id)}
-                completeFunction={() => completeTodoItem(item._id)}
-              />
+              <>
+                {
+                  ((!isVisibleCompleted && item.completed) || (isVisibleCompleted && !item.completed) || (isVisibleAll)) && (
+                  <TodoItem
+                    item={item}
+                    deleteFunction={() => deleteTodoItem(item._id)}
+                    completeFunction={() => completeTodoItem(item._id, item.completed)}
+                  />
+                  )
+                }
+              </>
             )
           }}
         />
@@ -133,21 +150,33 @@ const App = () => {
                 {todoItems.filter((item) => !item.completed).length} items left
             </Text>
             <View style={styles.switchlist}>
-                <TouchableHighlight
-                  onPress={() => showAll()}
+
+                <TouchableOpacity
+                  onPress={() => {
+                    setVisibleAll(true)
+                  }}
                 >
                     <Text>All</Text>
-                </TouchableHighlight>
-                <TouchableHighlight
-                  onPress={() => setVisibleCompleted(false)}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    setVisibleAll(false)
+                    setVisibleCompleted(true)
+                  }}
                 >
                     <Text>Active</Text>
-                </TouchableHighlight>
-                <TouchableHighlight
-                  onPress={() => setVisibleCompleted(true)}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    setVisibleAll(false)
+                    setVisibleCompleted(false)
+                  }}
                 >
                     <Text>Completed</Text>
-                </TouchableHighlight>
+                </TouchableOpacity>
+
             </View>
               <TouchableOpacity
                 onPress={() => deleteAllCompleted()}
@@ -158,12 +187,6 @@ const App = () => {
                 ) : null}
 
               </TouchableOpacity>
-              {/* <TouchableOpacity>
-                <Button
-                  title="Complete all"
-                  onPress={() => completeTodoItem()}
-                />
-              </TouchableOpacity> */}
         </View>
         <View 
           style={styles.footer}
